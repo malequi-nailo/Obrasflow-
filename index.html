@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>ObrasFlow</title>
+<link rel="stylesheet" href="style.css?v=10"/>
+
+<!-- Firebase 10 compat (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icon-192.png"/>
+<meta name="theme-color" content="#1a73e8"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="ObrasFlow"/>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="telaLogin">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 64 64" width="44" height="44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Torre -->
+        <rect x="22" y="14" width="6" height="38" fill="#F59E0B"/>
+        <!-- Diagonais da torre -->
+        <path d="M22 18 L28 24 M22 26 L28 32 M22 34 L28 40 M22 42 L28 48" stroke="#B45309" stroke-width="1.6"/>
+        <!-- Lança horizontal -->
+        <rect x="10" y="14" width="44" height="5" fill="#F59E0B"/>
+        <path d="M10 14 L14 19 M16 14 L20 19 M22 14 L26 19 M30 14 L34 19 M36 14 L40 19 M42 14 L46 19 M48 14 L52 19" stroke="#B45309" stroke-width="1.4"/>
+        <!-- Cabine -->
+        <rect x="18" y="19" width="14" height="6" fill="#FBBF24" stroke="#B45309" stroke-width="0.8"/>
+        <!-- Cabo + gancho -->
+        <line x1="44" y1="19" x2="44" y2="32" stroke="#1F2937" stroke-width="1.4"/>
+        <path d="M40 32 h8 v3 h-8 z" fill="#DC2626"/>
+        <path d="M44 35 v4 a3 3 0 0 0 3 3" stroke="#1F2937" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <!-- Base -->
+        <rect x="14" y="52" width="22" height="4" fill="#B45309"/>
+      </svg>
+    </div>
+    <h1>ObrasFlow</h1>
+    <p class="subtitulo">Gestão Inteligente de Obras</p>
+    <input type="text" id="inputUsuario" placeholder="Usuário"/>
+    <input type="password" id="inputSenha" placeholder="Senha"
+      onkeydown="if(event.key==='Enter') fazerLogin()"/>
+    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
+    <p id="erroLogin" class="erro-login">Usuário ou senha incorretos!</p>
+  </div>
+</div>
+<!-- ===== HEADER ===== -->
+<div class="app-header" id="appHeader" style="display:none">
+  <div class="header-top">
+    <div class="header-logo">
+      <div class="logo-icon">🏗️</div>
+      <div>
+        <h1>ObrasFlow</h1>
+        <p>Gestão Inteligente de Obras</p>
+      </div>
+    </div>
+    <div class="header-user">
+      <div class="user-info">
+        <div class="nome" id="nomeUsuarioLogado">Usuário</div>
+        <div class="cargo">Administrador</div>
+      </div>
+      <div class="avatar" id="avatarInicial">U</div>
+      <button id="btnGerenciarUsuarios" onclick="abrirModulo('gerenciarUsuarios')" style="display:none;background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:4px 10px;font-size:0.8rem;cursor:pointer">⚙️ Usuários</button>
+      <button class="btn-sair" onclick="fazerLogout()">Sair 🚪</button>
+    </div>
+  </div>
+</div>
+<!-- ===== PÁGINA INÍCIO (DASHBOARD) ===== -->
+<div class="pagina ativa" id="pag-inicio">
+
+  <div class="sec-header">
+    <h2>⚡ Acesso Rápido</h2>
+    <a href="#" onclick="ativarPagina('pag-gestao')">Ver todos</a>
+  </div>
+  <div class="acesso-rapido">
+    <div class="atalho-card" onclick="abrirModulo('orcamentos')">
+      <div class="atalho-icone ic-azul">📋</div>
+      <span>Orçamentos</span>
+      <small>Gerencie orçamentos</small>
+    </div>
+    <div class="atalho-card" onclick="abrirModulo('obras')">
+      <div class="atalho-icone ic-verde">🏗️</div>
+      <span>Obras</span>
+      <small>Acompanhe suas obras</small>
+    </div>
+    <div class="atalho-card" onclick="abrirModulo('funcionarios')">
+      <div class="atalho-icone ic-laranja">👷</div>
+      <span>Funcionários</span>
+      <small>Equipe e permissões</small>
+    </div>
+    <div class="atalho-card" onclick="abrirModulo('materiais')">
+      <div class="atalho-icone ic-roxo">📦</div>
+      <span>Materiais</span>
+      <small>Estoque e controle</small>
+    </div>
+    <div class="atalho-card" onclick="abrirModulo('diario')">
+      <div class="atalho-icone ic-ciano">📓</div>
+      <span>Diário do Dia</span>
+      <small>Registre atividades</small>
+    </div>
+    <div class="atalho-card" onclick="abrirModulo('registros')">
+      <div class="atalho-icone ic-indigo">📁</div>
+      <span>Registros</span>
+      <small>Documentos e arquivos</small>
+    </div>
+  </div>
+
+  <div class="sec-header">
+    <h2>📊 Painel Geral</h2>
+    <span style="font-size:0.78rem;color:#9CA3AF">📅 Hoje</span>
+  </div>
+  <div class="painel-grid" id="cards-financeiros"></div>
+
+  <div class="grafico-card">
+    <div class="g-header">
+      <h3>📈 Desempenho das Obras</h3>
+      <span class="g-sub">Este mês</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div>
+        <div class="g-pct" id="pctProgresso">0%</div>
+        <div style="font-size:0.7rem;color:#9CA3AF;font-weight:600">Progresso médio</div>
+      </div>
+      <div style="flex:1">
+        <div class="progresso-bar">
+          <div class="progresso-fill" id="barraProgresso" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <canvas id="graficoObras" height="180"></canvas>
+  </div>
+
+  <div class="sec-header" style="margin-top:4px">
+    <h2>🏗️ Obras em Andamento</h2>
+  </div>
+  <div class="obras-status">
+    <div class="status-box amarelo">
+      <div class="s-num" id="qtd-aguardando">0</div>
+      <div class="s-name">Aguardando</div>
+    </div>
+    <div class="status-box azul">
+      <div class="s-num" id="qtd-andamento">0</div>
+      <div class="s-name">Em Andamento</div>
+    </div>
+    <div class="status-box verde">
+      <div class="s-num" id="qtd-concluidas">0</div>
+      <div class="s-name">Concluídas</div>
+    </div>
+  </div>
+  <div id="cards-obras" style="padding:12px 16px 0;display:grid;grid-template-columns:1fr;gap:10px"></div>
+
+  <div class="sec-header" style="margin-top:4px">
+    <h2>🔔 Avisos Importantes</h2>
+    <a href="#" onclick="abrirModulo('agenda')">Ver todos</a>
+  </div>
+  <div id="lembrete-agenda"></div>
+
+</div>
+
+<!-- ===== PÁGINA GESTÃO ===== -->
+<div class="pagina" id="pag-gestao">
+  <div class="sec-header">
+    <h2>⚙️ Gestão</h2>
+  </div>
+  <div class="submenu-lista">
+    <div class="submenu-item" onclick="abrirModulo('orcamentos')">
+      <div class="atalho-icone ic-azul s-icone">📋</div>
+      <div class="s-texto"><div class="s-nome">Orçamentos</div><div class="s-desc">Crie e gerencie orçamentos</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('obras')">
+      <div class="atalho-icone ic-verde s-icone">🏗️</div>
+      <div class="s-texto"><div class="s-nome">Obras</div><div class="s-desc">Acompanhe suas obras</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('funcionarios')">
+      <div class="atalho-icone ic-laranja s-icone">👷</div>
+      <div class="s-texto"><div class="s-nome">Funcionários</div><div class="s-desc">Equipe e permissões</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('materiais')">
+      <div class="atalho-icone ic-roxo s-icone">📦</div>
+      <div class="s-texto"><div class="s-nome">Materiais</div><div class="s-desc">Estoque e controle</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('diario')">
+      <div class="atalho-icone ic-ciano s-icone">📓</div>
+      <div class="s-texto"><div class="s-nome">Diário do Dia</div><div class="s-desc">Registre atividades do dia</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item destaque" onclick="abrirModulo('registros')">
+      <div class="s-icone" style="font-size:1.3rem">📁</div>
+      <div class="s-texto"><div class="s-nome">Registros de Obras</div><div class="s-desc">Documentos e arquivos</div></div>
+      <span class="s-seta">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA FINANCEIRO ===== -->
+<div class="pagina" id="pag-financeiro">
+  <div class="sec-header">
+    <h2>💰 Financeiro</h2>
+  </div>
+  <div class="submenu-lista">
+    <div class="submenu-item" onclick="abrirModulo('clientes')">
+      <div class="atalho-icone ic-azul s-icone">👥</div>
+      <div class="s-texto"><div class="s-nome">Clientes</div><div class="s-desc">Gerencie seus clientes</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('custos')">
+      <div class="atalho-icone ic-vermelho s-icone" style="background:#FEF2F2">💰</div>
+      <div class="s-texto"><div class="s-nome">Custos de Obra</div><div class="s-desc">Controle seus gastos</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('financeiro')">
+      <div class="atalho-icone ic-verde s-icone">📊</div>
+      <div class="s-texto"><div class="s-nome">Financeiro</div><div class="s-desc">Visão financeira completa</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('prolabore')">
+      <div class="atalho-icone ic-indigo s-icone">💵</div>
+      <div class="s-texto"><div class="s-nome">Lucro e Pró-labore</div><div class="s-desc">Distribuição de lucros</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('relatorio')">
+      <div class="atalho-icone ic-roxo s-icone">📈</div>
+      <div class="s-texto"><div class="s-nome">Relatório Mensal</div><div class="s-desc">Resumo do mês</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirModulo('agenda')">
+      <div class="s-icone" style="font-size:1.3rem">📅</div>
+      <div class="s-texto"><div class="s-nome">Agenda</div><div class="s-desc">Compromissos e lembretes</div></div>
+      <span class="s-seta">›</span>
+    </div>
+    <div class="submenu-item" onclick="abrirFolhaPonto()">
+      <div class="atalho-icone s-icone" style="background:#EFF6FF">🗂️</div>
+      <div class="s-texto"><div class="s-nome">Folha de Ponto</div><div class="s-desc">Histórico mensal por funcionário</div></div>
+      <span class="s-seta">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA PERFIL ===== -->
+<div class="pagina" id="pag-perfil">
+  <div class="sec-header">
+    <h2>👤 Perfil</h2>
+  </div>
+  <div class="form-section" style="text-align:center">
+    <div style="width:72px;height:72px;background:linear-gradient(135deg,#1a73e8,#1557b0);border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:white;font-weight:800" id="avatarPerfil">U</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#1F2937" id="nomePerfil">Usuário</div>
+    <div style="font-size:0.8rem;color:#9CA3AF;margin-bottom:20px">Administrador</div>
+    <button onclick="fazerLogout()" style="background:linear-gradient(135deg,#dc2626,#ef4444)">
+      Sair da conta 🚪
+    </button>
+  </div>
+  <div id="btnGerenciarUsuariosWrapper" style="display:none;padding:0 16px">
+    <button id="btnGerenciarUsuarios" onclick="abrirModulo('gerenciarUsuarios')"
+      style="background:linear-gradient(135deg,#1a73e8,#1557b0);margin-top:0">
+      ⚙️ Gerenciar Usuários
+    </button>
+  </div>
+</div>
+
+<!-- ===== CONTEÚDO DOS MÓDULOS ===== -->
+<main id="conteudo" style="display:none">
+  <div style="padding:12px 16px 0">
+    <button onclick="voltarMenuPrincipal()"
+      style="background:#F3F4F6;color:#374151;border:none;border-radius:12px;
+      padding:10px 18px;font-size:0.85rem;font-weight:700;
+      font-family:Inter,sans-serif;cursor:pointer;width:auto">
+      ← Voltar
+    </button>
+  </div>
+  <div id="conteudo-interno" style="padding:12px 16px 16px"></div>
+</main>
+
+<!-- ===== BOTTOM NAVIGATION ===== -->
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <button class="nav-item ativo" id="nav-inicio" onclick="ativarPagina('pag-inicio')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Início</span>
+  </button>
+  <button class="nav-item" id="nav-gestao" onclick="ativarPagina('pag-gestao')">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Gestão</span>
+  </button>
+  <button class="nav-btn-plus" onclick="abrirModulo('orcamentos')">+</button>
+  <button class="nav-item" id="nav-financeiro" onclick="ativarPagina('pag-financeiro')">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Financeiro</span>
+  </button>
+  <button class="nav-item" id="nav-perfil" onclick="ativarPagina('pag-perfil')">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Perfil</span>
+  </button>
+</nav>
+
+<!-- ===== SCRIPTS DE NAVEGAÇÃO ===== -->
+<script>
+function ativarPagina(id) {
+  document.querySelectorAll('.pagina').forEach(p => p.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+  document.getElementById('conteudo').style.display = 'none';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('ativo'));
+  const mapa = {'pag-inicio':'nav-inicio','pag-gestao':'nav-gestao','pag-financeiro':'nav-financeiro','pag-perfil':'nav-perfil'};
+  if (mapa[id]) document.getElementById(mapa[id]).classList.add('ativo');
+  window.scrollTo(0,0);
+}
+function voltarInicio() {
+  document.getElementById('conteudo').style.display = 'none';
+  document.querySelectorAll('.pagina').forEach(p => p.classList.remove('ativa'));
+  document.getElementById('pag-inicio').classList.add('ativa');
+  document.getElementById('nav-inicio').classList.add('ativo');
+}
+</script>
+<script>
+// Forçar recarregamento do CSS
+function forceReloadCSS() {
+  var links = document.getElementsByTagName('link');
+  for (var i = 0; i < links.length; i++) {
+    if (links[i].rel === 'stylesheet') {
+      var href = links[i].href;
+      links[i].href = href + '?v=' + new Date().getTime();
+    }
+  }
+}
+// Executar ao carregar
+setTimeout(forceReloadCSS, 100);
+</script>
+<script>
+// Atualiza service worker e limpa caches antigos
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(r){ r.update(); });
+  });
+  if (window.caches) {
+    caches.keys().then(function(keys){
+      keys.forEach(function(k){
+        if (k.indexOf('gestaoobras-v11') === -1) caches.delete(k);
+      });
+    });
+  }
+}
+</script>
+<script src="script.js?v=11"></script>
+<div id="versaoApp" style="position:fixed;bottom:2px;right:6px;font-size:0.6rem;color:rgba(0,0,0,0.25);pointer-events:none;z-index:9999;font-family:Inter,sans-serif">v11</div>
+</body>
+</html>
